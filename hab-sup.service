@@ -1,0 +1,11 @@
+[Unit]
+Description=Habitat Supervisor
+
+[Service]
+Environment=HAB_BLDR_URL=https://<HAB_BLDR_URL>
+Environment=HAB_AUTH_TOKEN=<HAB_AUTH_TOKEN>
+ExecStartPre=/bin/bash -c /bin/systemctl
+ExecStart=/bin/hab sup run  --peer redis-1 --peer redis-2 --peer redis-3 --peer redis-4 --peer redis-5 --peer redis-6 --listen-ctl=0.0.0.0:9632 --strategy rolling
+
+[Install]
+WantedBy=default.target
