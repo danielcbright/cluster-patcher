@@ -1,0 +1,54 @@
+{{#if cfg.updates.enabled ~}}
+[updates]
+enabled = true
+
+[version]
+number = {{cfg.version.number}}
+
+{{#each cfg.nodes ~}}
+[nodes.{{@key}}]
+{{#if stop ~}}
+stop = '''{{stop}}'''
+{{else ~}}
+stop = '''{{../cfg.commoncmds.stopcmd}}'''
+{{/if ~}}
+{{#if start ~}}
+start = '''{{start}}'''
+{{else ~}}
+start = '''{{../cfg.commoncmds.startcmd}}'''
+{{/if ~}}
+{{#if validate ~}}
+validate = '''{{validate}}'''
+{{else ~}}
+validate = '''{{../cfg.commoncmds.validatecmd}}'''
+{{/if ~}}
+{{#if reboot ~}}
+reboot = {{reboot}}
+{{else ~}}
+reboot = {{../cfg.commoncmds.reboot}}
+{{/if ~}}
+{{#if status ~}}
+status = "{{status}}"
+{{else ~}}
+status = "default"
+{{/if ~}}
+{{#if skip ~}}
+skip = {{skip}}
+{{else ~}}
+skip = {{../cfg.commoncmds.skip}}
+{{/if}}
+{{/each ~}}
+
+[commoncmds]
+stopcmd = '''{{../cfg.commoncmds.stopcmd}}'''
+startcmd = '''{{../cfg.commoncmds.startcmd}}'''
+validatecmd = '''{{../cfg.commoncmds.validatecmd}}'''
+reboot = {{../cfg.commoncmds.reboot}}
+skip = {{../cfg.commoncmds.skip}}
+{{else}}
+[updates]
+enabled = false
+
+[version]
+number = {{cfg.version.number}}
+{{/if ~}}

@@ -1,0 +1,27 @@
+[version]
+number = 555
+
+[updates]
+enabled = true
+
+[nodes.redis-1]
+stop = '''sleep 10; yum update -y'''
+reboot = true
+
+[nodes.redis-2]
+stop = '''sleep 20; echo "hello, I'm `hostname`"'''
+
+[nodes.redis-3]
+
+[nodes.redis-4]
+
+[nodes.redis-5]
+
+[nodes.redis-6]
+
+[commoncmds]
+stopcmd = '''sleep 10'''
+startcmd = '''echo "I'm using the common start..."'''
+validatecmd = '''echo "\`hostname\` started"'''
+reboot = false
+skip = false

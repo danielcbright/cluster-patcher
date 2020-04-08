@@ -1,0 +1,36 @@
+#!/usr/bin/sh
+
+function config_apply () {
+    sudo rm -rf /opt/update-tracking/REBOOTED
+    version_number=`grep number /opt/update-tracking/config.toml | cut -d "=" -f2`
+    sudo hab config apply {{svc.service}}.{{svc.group}} $version_number /opt/update-tracking/config.toml
+    sleep 10
+}
+function run_start () {
+    sudo bash {{pkg.svc_config_path}}/{{sys.hostname}}_start
+}
+function run_validate () {
+    sudo bash {{pkg.svc_config_path}}/{{sys.hostname}}_validate
+}
+
+run=true
+
+function run_app () {
+    run_start
+    while run_validate; do
+        sleep 10
+        run_validate
+    done
+}
+
+if [ -f "/opt/update-tracking/REBOOTED" ]; then
+    counter=30
+    while [ $counter -gt 0 ]; do
+        echo "[RUN] Applying config in $counter seconds..."
+        sleep 1
+        counter=$(( $counter - 1 ))
+    done
+    config_apply
+fi
+
+run_app
