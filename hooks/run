@@ -12,10 +12,29 @@ function run_start () {
 function run_validate () {
     sudo bash {{pkg.svc_config_path}}/{{sys.hostname}}_validate
 }
+function make_cmd_files () {
+    # Populate the cmd files with defaults if no config has been applied to the cluster yet.
+    if [ ! -f "{{../pkg.svc_config_path}}/{{../sys.hostname}}_start" ]; then
+        echo "{{../pkg.svc_config_path}}/{{../sys.hostname}}_start, does not exist, creating default"
+        touch {{../pkg.svc_config_path}}/{{../sys.hostname}}_start
+        echo "echo \"[{{../sys.hostname}}] Default start command.\"" > {{../pkg.svc_config_path}}/{{../sys.hostname}}_start
+    fi
+    if [ ! -f "{{../pkg.svc_config_path}}/{{../sys.hostname}}_stop" ]; then
+        echo "{{../pkg.svc_config_path}}/{{../sys.hostname}}_stop, does not exist, creating default"
+        touch {{../pkg.svc_config_path}}/{{../sys.hostname}}_stop
+        echo "echo \"[{{../sys.hostname}}] Default stop command.\"" > {{../pkg.svc_config_path}}/{{../sys.hostname}}_stop
+    fi
+    if [ ! -f "{{../pkg.svc_config_path}}/{{../sys.hostname}}_validate" ]; then
+        echo "{{../pkg.svc_config_path}}/{{../sys.hostname}}_validate, does not exist, creating default"
+        touch {{../pkg.svc_config_path}}/{{../sys.hostname}}_validate
+        echo "echo \"[{{../sys.hostname}}] Default validate command.\"" > {{../pkg.svc_config_path}}/{{../sys.hostname}}_validate
+    fi
+}
 
 run=true
 
 function run_app () {
+    make_cmd_files
     run_start
     while run_validate; do
         sleep 10

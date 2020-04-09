@@ -6,7 +6,7 @@ function bump_version () {
 }
 function config_apply () {
     apply_version=$(bump_version)
-    hab config apply cluster-patcher.default $apply_version ./config.toml
+    hab config apply <svc_name.grp_name> $apply_version ./config.toml
 }
 
 config_apply

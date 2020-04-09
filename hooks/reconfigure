@@ -4,7 +4,7 @@
 function am_i_first () {
     echo "[RECONFIGURE] My IP is {{sys.ip}}, checking to see if I'm first to run updates..."
     sleep 1
-    grep_toml=`grep -m 1 -A 2 nodes {{pkg.svc_config_path}}/config.toml`
+    grep_toml=`grep -m 1 -A 2 "name =" {{pkg.svc_config_path}}/config.toml`
     if [[ "$grep_toml" == *"{{sys.hostname}}"* ]]; then
         grep_my_status=`grep -A 100 "{{sys.hostname}}" {{pkg.svc_config_path}}/config.toml | grep -m 1 'status =' | grep -vq -E 'next|done'`
         return $grep_my_status
@@ -46,25 +46,36 @@ function make_cmd_files () {
     touch {{../pkg.svc_config_path}}/{{../sys.hostname}}_start
     touch {{../pkg.svc_config_path}}/{{../sys.hostname}}_stop
     touch {{../pkg.svc_config_path}}/{{../sys.hostname}}_validate
-    chown -R hab:hab /hab/svc/cluster-patcher/config
 }
 function pop_cmd_files () {
     {{#each cfg.nodes ~}}
-    if [ {{@key}} == {{../sys.hostname}} ]; then
+    if [ "{{name}}" == "{{../sys.hostname}}" ]; then
         {{#if stop ~}}
-        echo {{stop}} > {{../pkg.svc_config_path}}/{{../sys.hostname}}_stop
+        cat <<EOF > {{../pkg.svc_config_path}}/{{../sys.hostname}}_stop
+{{stop}}
+EOF
         {{else}}
-        echo {{../cfg.commoncmds.stopcmd}} > {{../pkg.svc_config_path}}/{{../sys.hostname}}_stop
+        cat <<EOF > {{../pkg.svc_config_path}}/{{../sys.hostname}}_stop
+{{../cfg.commoncmds.stopcmd}}
+EOF
         {{/if ~}}
         {{#if start ~}}
-        echo {{start}} > {{../pkg.svc_config_path}}/{{../sys.hostname}}_start
+        cat <<EOF > {{../pkg.svc_config_path}}/{{../sys.hostname}}_start
+{{start}}
+EOF
         {{else}}
-        echo {{../cfg.commoncmds.startcmd}} > {{../pkg.svc_config_path}}/{{../sys.hostname}}_start
+        cat <<EOF > {{../pkg.svc_config_path}}/{{../sys.hostname}}_start
+{{../cfg.commoncmds.startcmd}}
+EOF
         {{/if ~}}
         {{#if validate ~}}
-        echo {{validate}} > {{../pkg.svc_config_path}}/{{../sys.hostname}}_validate
+        cat <<EOF > {{../pkg.svc_config_path}}/{{../sys.hostname}}_validate
+{{validate}}
+EOF
         {{else}}
-        echo {{../cfg.commoncmds.validatecmd}} > {{../pkg.svc_config_path}}/{{../sys.hostname}}_validate
+        cat <<EOF > {{../pkg.svc_config_path}}/{{../sys.hostname}}_validate
+{{../cfg.commoncmds.validatecmd}}
+EOF
         {{/if ~}}
     fi
     {{/each ~}}
@@ -75,7 +86,7 @@ function run_stop () {
 function set_done_and_next () {
     my_status_line=`grep -A 100 -n "{{sys.hostname}}" /opt/update-tracking/config.toml | grep -m 1 "status =" | cut -d "-" -f1 | awk '{ gsub(/^[ \t]+|[ \t]+$/, ""); print }'`
     sudo sed -i ''"$my_status_line"'s/.*/status = "done"/' /opt/update-tracking/config.toml
-    next_node=`grep -n -A 100 "{{sys.hostname}}" /opt/update-tracking/config.toml | grep -m 2 nodes | grep -v ":" | sed 's/^.*nodes\.//' | sed 's/]$//'`
+    next_node=`grep -n -A 100 "{{sys.hostname}}" /opt/update-tracking/config.toml | grep -m 2 "name =" | grep -v ":" | sed 's/^.*name\s*=\s*//' | sed 's/]$//'`
     next_status_line=`grep -A 100 -n "$next_node" /opt/update-tracking/config.toml | grep -m 1 "status =" | cut -d "-" -f1 | awk '{ gsub(/^[ \t]+|[ \t]+$/, ""); print }'`
     sudo sed -i ''"$next_status_line"'s/.*/status = "next"/' /opt/update-tracking/config.toml
 }
@@ -113,11 +124,12 @@ function should_i_skip () {
     fi
 }
 
+make_cmd_files
+pop_cmd_files
+
 if am_i_next; then
     copy_config_toml
     should_i_skip
-    make_cmd_files
-    pop_cmd_files
     counter=10
     while [ $counter -gt 0 ]; do
         echo "[RECONFIGURE] Waiting $counter seconds for config to apply..."

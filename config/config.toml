@@ -6,7 +6,8 @@ enabled = true
 number = {{cfg.version.number}}
 
 {{#each cfg.nodes ~}}
-[nodes.{{@key}}]
+[[nodes]]
+name = "{{name}}"
 {{#if stop ~}}
 stop = '''{{stop}}'''
 {{else ~}}
